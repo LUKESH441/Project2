@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Usage Analysis</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* CSS Variables */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            --text-color: #2d3748;
+            --text-muted: #4a5568;
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --primary: #6c5ce7;
+            --primary-hover: #5b4bc4;
+            --secondary: #00cec9;
+            --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --table-hover: rgba(255, 255, 255, 0.8);
+        }
+
+        body.dark-mode {
+            --bg-gradient: linear-gradient(135deg, #1e1e2f 0%, #2a2a40 100%);
+            --text-color: #f7fafc;
+            --text-muted: #cbd5e0;
+            --glass-bg: rgba(30, 30, 46, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            --table-hover: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* Glassmorphism Utility */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+        }
+
+        h1, h2, h3 {
+            color: var(--text-color);
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            font-weight: 700;
+        }
+
+        /* Navbar */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .nav-logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 600;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: var(--primary);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+        }
+
+        /* Mobile Menu */
+        .menu-toggle {
+            display: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            background: none;
+            border: none;
+        }
+
+        /* Sections padding */
+        section {
+            padding: 100px 5%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Home Hero */
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero-content {
+            flex: 1;
+        }
+
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 20px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 50px;
+            background-color: var(--primary);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.6);
+            background-color: var(--primary-hover);
+        }
+
+        /* Dashboard */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .chart-container {
+            padding: 1.5rem;
+            height: 350px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .chart-container h3 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .chart-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .line-chart-full {
+            grid-column: 1 / -1;
+            height: 400px;
+        }
+
+        /* Data Table */
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .table-controls input {
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            color: var(--text-color);
+            backdrop-filter: blur(5px);
+            width: 300px;
+            outline: none;
+        }
+
+        .table-controls input:focus {
+            border-color: var(--primary);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        th {
+            cursor: pointer;
+            user-select: none;
+            font-weight: 600;
+            color: var(--primary);
+            white-space: nowrap;
+        }
+
+        th:hover {
+            background-color: rgba(108, 92, 231, 0.1);
+        }
+
+        tbody tr:hover {
+            background-color: var(--table-hover);
+        }
+
+        /* Insights */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .insight-card {
+            padding: 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .insight-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .insight-icon {
+            font-size: 3rem;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .insight-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* About */
+        .about-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem;
+            text-align: left;
+        }
+
+        .about-content p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+        }
+
+        .tech-tags {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .tag {
+            padding: 0.5rem 1rem;
+            background: rgba(108, 92, 231, 0.1);
+            color: var(--primary);
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid rgba(108, 92, 231, 0.2);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: var(--glass-bg);
+                backdrop-filter: blur(16px);
+                padding: 2rem 0;
+                border-top: 1px solid var(--glass-border);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .hero {
+                flex-direction: column-reverse;
+                text-align: center;
+                gap: 2rem;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            section {
+                padding-top: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="glass">
+        <a href="#home" class="nav-logo"><i class="fa-solid fa-chart-pie"></i> SMUA</a>
+        <button class="menu-toggle" id="mobile-menu-btn"><i class="fa-solid fa-bars"></i></button>
+        <div class="nav-links" id="nav-links">
+            <a href="#home">Home</a>
+            <a href="#dashboard">Dashboard</a>
+            <a href="#data">Dataset</a>
+            <a href="#insights">Insights</a>
+            <a href="#about">About</a>
+            <button class="theme-toggle" id="theme-btn" title="Toggle Dark Mode">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Home Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>Social Media Usage Analysis</h1>
+            <p>A comprehensive deep-dive into user behavior, time allocation, and platform preferences across modern social media landscapes.</p>
+            <a href="#" class="btn" onclick="alert('Dummy report downloading...')"><i class="fa-solid fa-download"></i> Download Full Report</a>
+        </div>
+        <div class="hero-image">
+            <img src="social_media_hero.png" alt="Social Media Analytics Hero" class="glass" style="padding: 15px; background: rgba(255,255,255,0.1);">
+        </div>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard">
+        <h2 class="section-title">Visual Dashboard</h2>
+        <div class="charts-grid">
+            <div class="glass chart-container">
+                <h3>Time Spent per Platform (Hours)</h3>
+                <canvas id="barChart"></canvas>
+            </div>
+            <div class="glass chart-container">
+                <h3>User Age Demographics</h3>
+                <canvas id="pieChart"></canvas>
+            </div>
+            <div class="glass chart-container line-chart-full">
+                <h3>Daily Usage Trends Over 7 Days</h3>
+                <canvas id="lineChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Table Section -->
+    <section id="data">
+        <h2 class="section-title">Interactive Dataset</h2>
+        <div class="glass" style="padding: 2rem;">
+            <div class="table-controls">
+                <input type="text" id="searchInput" placeholder="Search by platform or location...">
+            </div>
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0)">User ID <i class="fa-solid fa-sort"></i></th>
+                            <th onclick="sortTable(1)">Age <i class="fa-solid fa-sort"></i></th>
+                            <th onclick="sortTable(2)">Platform <i class="fa-solid fa-sort"></i></th>
+                            <th onclick="sortTable(3)">Time Spent (hrs) <i class="fa-solid fa-sort"></i></th>
+                            <th onclick="sortTable(4)">Location <i class="fa-solid fa-sort"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Insights Section -->
+    <section id="insights">
+        <h2 class="section-title">Key Findings</h2>
+        <div class="insights-grid">
+            <div class="glass insight-card">
+                <i class="fa-brands fa-instagram insight-icon"></i>
+                <h3>Most Used Platform</h3>
+                <div class="insight-value">Instagram</div>
+                <p style="color: var(--text-muted)">Capturing 42% of total screen time among surveyed users.</p>
+            </div>
+            <div class="glass insight-card">
+                <i class="fa-solid fa-clock insight-icon"></i>
+                <h3>Average Daily Usage</h3>
+                <div class="insight-value">3.2 Hrs</div>
+                <p style="color: var(--text-muted)">A 15% increase compared to last year's statistics.</p>
+            </div>
+            <div class="glass insight-card">
+                <i class="fa-solid fa-fire insight-icon"></i>
+                <h3>Peak Usage Time</h3>
+                <div class="insight-value">8:00 PM</div>
+                <p style="color: var(--text-muted)">Engagement peaks heavily during evening leisure hours.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about">
+        <h2 class="section-title">About the Project</h2>
+        <div class="glass about-content">
+            <h3>Project Purpose</h3>
+            <p>This is a student data analytics project aimed at understanding modern digital habits. The goal is to analyze patterns in social media consumption, identifying demographic trends, preferred platforms, and potential correlations in regional usage.</p>
+            
+            <h3>Methodology</h3>
+            <p>The dataset used in this analysis is a generated sample mirroring real-world distributions. The data processing and core analysis were mocked conceptualizing typical workflows utilizing modern data structures.</p>
+            
+            <h3>Tools & Technologies</h3>
+            <div class="tech-tags">
+                <span class="tag"><i class="fa-brands fa-python"></i> Python</span>
+                <span class="tag">Pandas</span>
+                <span class="tag">Matplotlib</span>
+                <span class="tag"><i class="fa-brands fa-html5"></i> HTML5</span>
+                <span class="tag"><i class="fa-brands fa-css3-alt"></i> CSS3</span>
+                <span class="tag"><i class="fa-brands fa-js"></i> JavaScript</span>
+                <span class="tag">Chart.js</span>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // -----------------------
+        // Mobile Menu Toggle
+        // -----------------------
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const navLinks = document.getElementById('nav-links');
+
+        mobileBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        // Hide menu when clicking a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+            });
+        });
+
+        // -----------------------
+        // Dark Mode Toggle
+        // -----------------------
+        const themeBtn = document.getElementById('theme-btn');
+        const body = document.body;
+        const icon = themeBtn.querySelector('i');
+
+        // Check local storage
+        if (localStorage.getItem('theme') === 'dark') {
+            body.classList.add('dark-mode');
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
+
+        themeBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            
+            if (isDark) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                localStorage.setItem('theme', 'light');
+            }
+            
+            // Update charts colors
+            updateChartsTheme(isDark);
+        });
+
+        // -----------------------
+        // Chart.js Configuration
+        // -----------------------
+        
+        let barChartInstance, pieChartInstance, lineChartInstance;
+
+        function getChartColors(isDark) {
+            return {
+                text: isDark ? '#f7fafc' : '#2d3748',
+                grid: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+            };
+        }
+
+        function initCharts() {
+            const isDark = body.classList.contains('dark-mode');
+            const colors = getChartColors(isDark);
+
+            Chart.defaults.color = colors.text;
+            Chart.defaults.font.family = "'Inter', sans-serif";
+
+            // 1. Bar Chart
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            barChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Instagram', 'WhatsApp', 'Facebook', 'YouTube'],
+                    datasets: [{
+                        label: 'Average Hours/Day',
+                        data: [3.5, 2.5, 1.8, 3.0],
+                        backgroundColor: [
+                            'rgba(193, 53, 132, 0.7)',
+                            'rgba(37, 211, 102, 0.7)',
+                            'rgba(66, 103, 178, 0.7)',
+                            'rgba(255, 0, 0, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(193, 53, 132)',
+                            'rgb(37, 211, 102)',
+                            'rgb(66, 103, 178)',
+                            'rgb(255, 0, 0)'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: colors.grid }
+                        },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 2. Pie Chart
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            pieChartInstance = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['13-17', '18-24', '25-34', '35+'],
+                    datasets: [{
+                        data: [15, 45, 25, 15],
+                        backgroundColor: [
+                            '#fdcb6e',
+                            '#6c5ce7',
+                            '#00cec9',
+                            '#ff7675'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: { 
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // 3. Line Chart
+            const ctxLine = document.getElementById('lineChart').getContext('2d');
+            const gradient = ctxLine.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(108, 92, 231, 0.5)');
+            gradient.addColorStop(1, 'rgba(108, 92, 231, 0.0)');
+
+            lineChartInstance = new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Total Platform Usage (Hrs)',
+                        data: [2.5, 2.8, 2.6, 3.1, 4.0, 5.2, 4.8],
+                        borderColor: '#6c5ce7',
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#00cec9',
+                        pointBorderColor: '#fff',
+                        pointRadius: 5,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: colors.grid }
+                        },
+                        x: { grid: { color: colors.grid } }
+                    }
+                }
+            });
+        }
+
+        function updateChartsTheme(isDark) {
+            const colors = getChartColors(isDark);
+            Chart.defaults.color = colors.text;
+            
+            [barChartInstance, lineChartInstance].forEach(chart => {
+                if(chart.options.scales.x.grid) chart.options.scales.x.grid.color = colors.grid;
+                if(chart.options.scales.y.grid) chart.options.scales.y.grid.color = colors.grid;
+                chart.update();
+            });
+            pieChartInstance.update();
+        }
+
+        // -----------------------
+        // Dummy Data & Table Logic
+        // -----------------------
+        
+        let rawData = [];
+        let tableData = [];
+        const tableBody = document.getElementById('tableBody');
+        const searchInput = document.getElementById('searchInput');
+
+        function fetchTableData() {
+            fetch('/api/data')
+                .then(res => res.json())
+                .then(data => {
+                    rawData = data;
+                    tableData = [...rawData];
+                    renderTable(tableData);
+                })
+                .catch(err => console.error("Error fetching data:", err));
+        }
+
+        function renderTable(data) {
+            tableBody.innerHTML = '';
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.id}</td>
+                    <td>${row.age}</td>
+                    <td><span class="tag">${row.platform}</span></td>
+                    <td><strong>${row.time}</strong></td>
+                    <td>${row.location}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Search feature
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = rawData.filter(item => 
+                item.platform.toLowerCase().includes(query) || 
+                item.location.toLowerCase().includes(query) ||
+                item.id.toLowerCase().includes(query)
+            );
+            tableData = filtered;
+            renderTable(filtered);
+        });
+
+        // Sorting feature
+        let sortCol = -1;
+        let sortAsc = true;
+
+        function sortTable(colIndex) {
+            const keys = ['id', 'age', 'platform', 'time', 'location'];
+            const key = keys[colIndex];
+            
+            if (sortCol === colIndex) {
+                sortAsc = !sortAsc; // toggle direction
+            } else {
+                sortCol = colIndex;
+                sortAsc = true;
+            }
+
+            tableData.sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                if (valA < valB) return sortAsc ? -1 : 1;
+                if (valA > valB) return sortAsc ? 1 : -1;
+                return 0;
+            });
+            renderTable(tableData);
+        }
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            fetchTableData();
+        });
+
+    </script>
+</body>
+</html>
